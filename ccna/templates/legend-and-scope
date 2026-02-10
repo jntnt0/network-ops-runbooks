@@ -1,0 +1,322 @@
+# Legend and Scope (CCNA Ops Labs)
+
+Legend:
+- A = Fully demonstrable in a lab tool (PocketCLI, Packet Tracer, CML, EVE-NG, GNS3) with configs plus show outputs saved as text
+- B = Demonstrable with higher-fidelity IOS XE images or multi-device labs (CML/EVE/GNS3) and deeper, more realistic behavior
+- C = Mostly documentation and story pack only unless you have real enterprise gear or specific platforms (WLC, enterprise Wi-Fi, ISP handoff quirks)
+
+Repo structure (recommended for CCNA):
+- /runbooks
+- /configs
+- /evidence
+- /diagrams
+- /scripts (optional)
+- /templates
+
+## Standards
+
+### Evidence standards (required)
+Primary proof should be text, not screenshots.
+- Save show outputs as .txt
+- Save running-config snippets as .cfg (or .txt)
+- Save change sets as fix-commands.txt
+- Save topology diagrams as .png (or .svg)
+- Screenshots are allowed, but only when they add value (topology view, UI-only features)
+
+Evidence naming convention (required)
+- Folder per scenario under /evidence:
+  - /evidence/<scenario-slug>/
+    - 01-topology.png
+    - 02-before-show-<command>.txt
+    - 03-before-running-config.cfg
+    - 04-fix-commands.txt
+    - 05-after-show-<command>.txt
+    - 06-notes.md (optional)
+- Use UTC timestamps inside notes when possible.
+- If any artifact contains real identifiers, redact them and state what was redacted.
+
+### Redaction rules (required)
+Do not commit:
+- Real public IPs you own or use
+- Real company names, domains, hostnames, usernames
+- Any credentials, keys, tokens
+If you need to show an IP, use RFC 5737 examples (203.0.113.0/24, 198.51.100.0/24, 192.0.2.0/24) or RFC 1918 space.
+
+### Runbook philosophy
+Every runbook must:
+- reproduce the failure (or describe how it would occur)
+- show how to confirm the failure with specific show commands
+- apply a minimal fix
+- verify with specific show commands
+- include rollback
+- point to evidence artifacts
+
+## Standard Runbook Template (required)
+Use this exact structure for every runbook.
+
+### A/B/C Tag
+- Tag: (A|B|C)
+
+### Symptoms
+- What the user or monitoring sees
+- What is broken (and what still works)
+
+### Scope
+- Devices involved (R1, SW1, etc.)
+- Protocols involved (VLAN, STP, OSPF, etc.)
+- Blast radius (single VLAN, entire site, WAN, etc.)
+
+### Topology
+- Short description
+- Link to diagram: /diagrams/<name>.png
+
+### Preconditions
+- Access needed (console/SSH)
+- Privilege level
+- Known starting assumptions (IP plan, VLAN plan, routing design)
+
+### Triage checklist
+- 5 to 10 ordered checks with exact show commands
+- What you expect to see if healthy vs broken
+
+### Fix steps
+- Minimal change set
+- Include exact configuration commands
+- Include any required saves (write memory)
+
+### Verification
+- Exact show commands that prove resolution
+- What success looks like
+
+### Prevention
+- Baseline hardening or design choices that prevent recurrence
+- Monitoring/logging additions if relevant
+
+### Rollback
+- How to revert safely
+- What to verify after rollback
+
+### Evidence to collect
+- Required show outputs and configs to save under /evidence/<scenario>/
+
+## Standard Story Pack Template (required)
+Use this exact structure for every story pack.
+
+### A/B/C Tag
+- Tag: (A|B|C)
+
+### Situation
+### Impact
+### Triage
+### Fix
+### Verification
+### Prevention
+### What I documented or automated
+
+## Master Scope List (CCNA)
+
+### 1) Switching fundamentals
+
+VLANs and trunks
+- VLAN missing or misconfigured on access port (A)
+- Access port in wrong VLAN (A)
+- Trunk not forming due to mode mismatch or DTP expectations (A)
+- Allowed VLAN list missing required VLAN (A)
+- Native VLAN mismatch and resulting behavior (A)
+- VLAN pruning misconceptions and verification (A)
+- Voice VLAN basics (data VLAN vs voice VLAN) (A)
+
+STP (PVST+/Rapid PVST)
+- STP root bridge placement and why it matters (A)
+- Root port selection and tie-breakers (A)
+- Designated port selection and tie-breakers (A)
+- Port roles: root, designated, alternate, backup (A)
+- STP convergence differences (classic vs rapid concepts) (A)
+- PortFast usage and pitfalls (A)
+- BPDU Guard behavior and recovery process (A)
+- Loop guard vs BPDU guard and where each applies (B)
+- Unidirectional link symptom patterns (B)
+
+EtherChannel
+- LACP bundle not forming due to config mismatch (A)
+- LACP passive vs active pitfalls (A)
+- Member links with mismatched trunking settings (A)
+- EtherChannel load balancing concept (A)
+- Verifying channel state and troubleshooting (A)
+
+Switch security
+- Port security: restrict vs shutdown vs protect and recovery (A)
+- DHCP snooping: trust boundaries and common breakages (A/B)
+- Dynamic ARP Inspection: prerequisites and failure symptoms (A/B)
+- IP Source Guard basics (B)
+- Storm control basics (B)
+
+### 2) Routing fundamentals
+
+IPv4 routing
+- Static route configured wrong (next hop vs exit interface) (A)
+- Default route behavior and verification (A)
+- Longest prefix match troubleshooting (A)
+- Connected vs local routes and what they represent (A)
+- Route selection basics: admin distance and metric (A)
+
+OSPFv2 basics (single area focus)
+- OSPF neighbor stuck in INIT/2-WAY/EXSTART/EXCHANGE/FULL reasoning (A/B)
+- Area mismatch, subnet mismatch, hello/dead mismatch (A)
+- OSPF network type mismatch symptoms (B)
+- OSPF passive interface and neighbor formation (A)
+- Router ID selection and why it matters (A)
+- Verifying LSDB at a basic level (A/B)
+- Default route advertisement concepts (B)
+
+Inter-VLAN routing
+- Router-on-a-stick: missing subinterface encapsulation (A)
+- Wrong native VLAN on trunk to router (A)
+- SVIs: VLAN interface down/down vs up/up causes (A)
+- L3 switch routing enablement and interface VLAN pitfalls (B)
+
+### 3) IP services and network services
+
+DHCP
+- DHCP scope missing or wrong network (A)
+- DHCP relay (ip helper-address) missing or wrong (A)
+- DHCP exhaustion and symptom patterns (A)
+- DHCP option basics that show up in labs (default gateway) (A)
+
+NAT/PAT
+- Inside vs outside confusion and verification (A)
+- PAT overload config and verification (A)
+- ACL matching wrong traffic for NAT (A)
+- NAT not translating due to routing missing (A)
+- NAT translation table interpretation (A)
+
+NTP and time
+- NTP basics and why time matters (A)
+- Verifying NTP sync and troubleshooting (A)
+
+DNS basics (network admin view)
+- DNS resolution path and where to test (A)
+- A vs CNAME vs MX vs TXT high level relevance (A)
+
+Syslog and SNMP basics
+- Syslog levels and why you care (A)
+- SNMP concept level only unless you lab it (B/C)
+
+### 4) Security fundamentals (CCNA level)
+
+ACLs
+- Standard ACL placement rules and common mistakes (A)
+- Extended ACL placement rules and common mistakes (A)
+- Implicit deny and verification (A)
+- ACL order, top-down matching, and logging concept (A)
+- Applying ACLs inbound vs outbound (A)
+- Troubleshooting traffic blackholes caused by ACLs (A)
+
+Device hardening basics
+- SSH enablement and common failure points (A)
+- Local user accounts vs line passwords basics (A)
+- Enable secret vs enable password concept (A)
+- Password encryption service settings (A)
+- Banners and legal notice basics (A)
+
+Layer 2 protection (overlaps switching security)
+- DHCP snooping, DAI, IP source guard summary and dependencies (A/B)
+
+### 5) Wireless basics (conceptual unless you have a controller)
+
+Wireless concepts
+- SSID, BSSID, channels, basic interference concepts (C)
+- WPA2/WPA3, PSK vs enterprise (802.1X) (C)
+- Roaming basics and what breaks voice/Wi-Fi calls (C)
+- Common troubleshooting flow (client, AP, auth, DHCP, DNS) (C)
+
+### 6) Troubleshooting methodology and operational discipline
+
+Structured troubleshooting (required skill)
+- Define scope and blast radius first (A)
+- Confirm L1/L2 before L3 (A)
+- Use show commands to prove, not guess (A)
+- Change one thing at a time and verify (A)
+- Always define rollback before applying fix (A)
+
+Baseline operational artifacts (runbooks should include)
+- “before” and “after” show outputs (A)
+- Minimal change set in a single block (A)
+- Verification commands explicitly listed (A)
+
+### 7) CCNA lab scenario library (recommended minimum set)
+
+Build these scenarios end-to-end with evidence.
+Switching scenarios
+- VLAN trunk allowed list missing VLAN (A)
+- Native VLAN mismatch (A)
+- STP root misplacement causing suboptimal path (A)
+- PortFast with BPDU guard errdisable recovery (A)
+- EtherChannel LACP mismatch (A)
+
+Routing scenarios
+- OSPF neighbor fails due to area mismatch (A)
+- OSPF neighbor stuck EXSTART due to MTU mismatch (B)
+- Inter-VLAN routing broken due to missing subinterface encapsulation (A)
+- Default route missing causing internet blackhole (A)
+
+Services scenarios
+- DHCP relay missing on router interface (A)
+- NAT overload broken due to wrong ACL match (A)
+- NTP unsynced and its effect on logs and auth (A)
+
+Security scenarios
+- Extended ACL blocks required traffic due to implicit deny (A)
+- SSH not working due to vty transport input or missing crypto keys (A)
+
+### 8) “Show command” core set (must be fluent)
+
+Switching
+- show vlan brief (A)
+- show interfaces switchport (A)
+- show interfaces trunk (A)
+- show spanning-tree (A)
+- show etherchannel summary (A)
+- show port-security interface (A)
+- show ip dhcp snooping (A/B)
+- show ip arp inspection (A/B)
+
+Routing and services
+- show ip interface brief (A)
+- show ip route (A)
+- show ip ospf neighbor (A)
+- show ip ospf interface (A/B)
+- show ip protocols (A)
+- show ip nat translations (A)
+- show ip nat statistics (A)
+- show access-lists (A)
+- show ip dhcp binding (A)
+- show clock (A)
+- show ntp status (A)
+
+### 9) Script and tooling scope (optional)
+If your tool supports exporting outputs cleanly:
+- A script or helper procedure to capture show outputs into text files (A)
+- A template command capture checklist per scenario (A)
+
+## Backlog rules
+- Every scope item must become either:
+  - a runbook in /runbooks, plus evidence folder, OR
+  - a story pack in /story-packs (only for C items)
+- A and B items should produce at least:
+  - one topology diagram
+  - two before outputs
+  - a fix command block
+  - two after outputs
+
+## Quick start (first sprint)
+Sprint 1 should produce these files:
+- /runbooks/vlan-trunk-allowed-vlan-missing.md (A)
+- /runbooks/native-vlan-mismatch.md (A)
+- /runbooks/stp-root-misplacement.md (A)
+- /runbooks/etherchannel-lacp-not-forming.md (A)
+- /runbooks/ospf-neighbor-area-mismatch.md (A)
+- /runbooks/nat-overload-acl-mismatch.md (A)
+- /runbooks/dhcp-relay-missing.md (A)
+
+Plus evidence folders and diagrams for each.
